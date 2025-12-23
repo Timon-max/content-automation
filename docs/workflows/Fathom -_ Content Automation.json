@@ -1,0 +1,239 @@
+{
+  "name": "Fathom -> Content Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fathom-content-ideas",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "dd868451-72ef-4eb0-a3fc-378c8ffc60a9",
+      "name": "Webhook",
+      "webhookId": "2104c340-0c85-4510-98b0-2de6a0a73710"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the webhook payload\nconst webhookData = $input.first().json;\n\n// DEBUG: Check what we're getting\nconsole.log('=== NODE 2 DEBUG ===');\nconsole.log('webhookData.body exists?', !!webhookData.body);\nconsole.log('meeting_title value:', webhookData.body?.meeting_title);\n\n// Extract relevant information\nconst callData = {\n  callTitle: webhookData.body.meeting_title || 'Untitled Call',\n  callDate: webhookData.body.created_at,\n  fathomCallId: webhookData.body.recording_id,\n  callUrl: webhookData.body.share_url || '',\n  participants: webhookData.body.calendar_invitees?.map(inv => inv.name).join(', ') || 'Unknown',\n  \n  // Get transcript\n  transcript: webhookData.body.transcript?.map(segment => segment.text).join(' ') || '',\n  \n  // Get summary if available\n  summary: webhookData.body.summary || '',\n  \n  // Get action items if available\n  actionItems: webhookData.body.action_items?.map(item => item.text).join('; ') || ''\n};\n\nreturn [{ json: callData }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "57ce51dc-c3fe-4e29-a2f6-e0497385ec60",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a content strategist analyzing coaching calls to extract LinkedIn post ideas. Your goal is to find specific, relatable moments that would make great social media content.\n\nFor each call, identify:\n1. The EXACT pain point language the client used (their words, not clinical terms)\n2. 3-5 specific post angles that would resonate with people experiencing the same issue\n3. The \"aha moment\" or breakthrough insight from the conversation\n4. Specific details that make this story relatable (desk setup, daily routine, time constraints, etc.)\n\nFocus on content that would make someone say \"that's exactly what I'm dealing with!\""
+            },
+            {
+              "content": "=Analyze this coaching call and extract content ideas:\n\nCALL TITLE: {{ $('Code in JavaScript').item.json.callTitle }}\n\nTRANSCRIPT:\n{{ $('Code in JavaScript').item.json.transcript }}\n\nSUMMARY: {{ $('Code in JavaScript').item.json.summary }}\n\nACTION ITEMS: {{ $('Code in JavaScript').item.json.actionItems }}\n\n---\n\nGenerate output in this JSON format:\n{\n  \"painPoints\": \"Use the client's EXACT words describing their problem\",\n  \"contentAngles\": [\n    \"Post idea 1: [Specific hook] - Example: 'Sitting 8 hours? This 30-second stretch saved my client's back'\",\n    \"Post idea 2: [Different angle on same topic]\",\n    \"Post idea 3: [Transformation story angle]\"\n  ],\n  \"clientLanguage\": \"Key phrases the client used that would resonate with others\",\n  \"ahaMoment\": \"The breakthrough realization or solution that clicked for the client\",\n  \"detailsSolution\": \"Specific, actionable steps discussed (with timeframes/numbers)\",\n  \"transcriptSummary\": \"2-3 sentence summary of the conversation\"\n}\n\nMake the content angles SPECIFIC and COMPELLING - they should feel like actual LinkedIn post hooks."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "text"
+            }
+          },
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "43b037fd-3ae4-40e0-baea-4e778aff15de",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "c2EeK7zA6tTcc9An",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const callData = $node[\"Code in JavaScript\"].json;\nconst aiResponse = $input.first().json.output[0].content[0].text;\n\n// DEBUG\nconsole.log('=== NODE 4 DEBUG ===');\nconsole.log('callData from Node 2:', callData);\n\n// Extract JSON from markdown code blocks if present\nconst jsonMatch = aiResponse.match(/\\{[\\s\\S]*\\}/);\nif (!jsonMatch) {\n  throw new Error('Could not parse AI response');\n}\n\nconst insights = JSON.parse(jsonMatch[0]);\n\nreturn [{\n  json: {\n    callTitle: callData.callTitle,\n    callDate: callData.callDate,\n    fathomCallId: callData.fathomCallId,\n    callUrl: callData.callUrl,\n    \n    // Handle painPoints as string or array\n    painPoints: typeof insights.painPoints === 'string' \n      ? insights.painPoints \n      : insights.painPoints.join('; '),\n    \n    // Handle contentAngles as array (join with line breaks + bullets)\n    contentAngles: Array.isArray(insights.contentAngles)\n      ? insights.contentAngles.join('\\n• ')\n      : insights.contentAngles,\n    \n    // New fields from updated prompt\n    clientLanguage: insights.clientLanguage || '',\n    ahaMoment: insights.ahaMoment || '',\n    \n    // Handle detailsSolution as string\n    detailsSolution: insights.detailsSolution || '',\n    \n    transcriptSummary: insights.transcriptSummary || callData.summary\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "50145ae8-b352-49f3-9f7a-8526238461fc",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "fe1ec1a3-d0f8-46cf-88cc-2080a3ab31e5",
+          "mode": "list",
+          "cachedResultName": "Call Insights & Ideas",
+          "cachedResultUrl": "https://www.notion.so/fe1ec1a3d0f846cf88cc2080a3ab31e5"
+        },
+        "title": "={{ $('Code in JavaScript').item.json.callTitle }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Call Date|date",
+              "date": "={{ $json.callDate }}"
+            },
+            {
+              "key": "Call Transcript Summary|rich_text",
+              "textContent": "={{ $('Webhook').item.json.body.summary }}"
+            },
+            {
+              "key": "Content Angle (if applicable)|rich_text",
+              "textContent": "={{ $json.contentAngles }}"
+            },
+            {
+              "key": "Details / Solution|rich_text",
+              "textContent": "={{ $('Webhook').item.json.body.action_items[0].text }}"
+            },
+            {
+              "key": "Fathom Call ID|rich_text",
+              "textContent": "={{ $('Webhook').item.json.body.recording_id }}"
+            },
+            {
+              "key": "Insight/Idea|title",
+              "title": "={{ $('Code in JavaScript').item.json.callTitle }}"
+            },
+            {
+              "key": "Status|status",
+              "statusValue": "=New"
+            },
+            {
+              "key": "Used in Content|checkbox"
+            },
+            {
+              "key": "Aha Moment|rich_text",
+              "textContent": "={{ $json.ahaMoment }}"
+            },
+            {
+              "key": "Client Language|rich_text",
+              "textContent": "={{ $json.clientLanguage }}"
+            },
+            {
+              "key": "Type|select",
+              "selectValue": "Content Idea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "1ab36153-4b44-4b3d-bd36-f2ae7b657900",
+      "name": "Create Call Insights & Ideas",
+      "credentials": {
+        "notionApi": {
+          "id": "hwThTogBKs7GTWly",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create Call Insights & Ideas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "bad27b19-6b6a-4436-b2f7-4d5d45002b46",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a86bb16905ba5e133b015649e8dfc31d9506e4fd35b0a5dbda587f5d4b97fd4"
+  },
+  "id": "Y11DPmhivyqg9d8W",
+  "tags": [
+    {
+      "updatedAt": "2025-12-04T18:17:19.407Z",
+      "createdAt": "2025-12-04T18:17:19.407Z",
+      "id": "9C1WT6cwF6u7Jg2C",
+      "name": "Andreas Dubinyi"
+    },
+    {
+      "updatedAt": "2025-12-09T16:15:13.243Z",
+      "createdAt": "2025-12-09T16:15:13.243Z",
+      "id": "qAtKspGSlyxR996C",
+      "name": "Content Generation"
+    }
+  ]
+}

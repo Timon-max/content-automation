@@ -1,0 +1,377 @@
+{
+  "name": "Content Automation (Full tool)",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "databaseId": {
+          "__rl": true,
+          "value": "e2234a9e-f84d-49d9-abed-e5272b751340",
+          "mode": "list",
+          "cachedResultName": "Content Automation Database",
+          "cachedResultUrl": "https://www.notion.so/e2234a9ef84d49d9abede5272b751340"
+        }
+      },
+      "type": "n8n-nodes-base.notionTrigger",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        0
+      ],
+      "id": "a7b8a522-a095-4794-b220-2e85d2e11695",
+      "name": "Notion Trigger",
+      "credentials": {
+        "notionApi": {
+          "id": "hwThTogBKs7GTWly",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "perplexityApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"sonar\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a research assistant helping the user stay current with industry trends, breakthrough studies, and emerging conversations in the AI, automation and systemization space.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Research the latest trends, studies, and conversations related to: \" + $('Fathom Call Ideas').item.json.property_content_angle_if_applicable + \"\\n\\nUSER INSTRUCTIONS: \" + $('Notion Trigger').item.json['Input/Brief'] + \"\\n\\nFocus on:\\n1. Recent developments in automation/systemization for coaching/consulting businesses\\n2. What experts are saying about no-code tools and AI implementation\\n3. Common misconceptions or debates in the space\\n4. Real-world case studies and success stories\\n\\nProvide 3-5 key insights with sources that align with the specific request.\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"max_tokens\": 1000\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        608,
+        0
+      ],
+      "id": "d750cc51-c22a-4b29-8d1a-c833aaa2b664",
+      "name": "HTTP Request - Perplexity Research",
+      "credentials": {
+        "perplexityApi": {
+          "id": "vrEuTPHK87lbdbA6",
+          "name": "Perplexity account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a LinkedIn ghostwriter for 11Solutions, an AI systemization agency helping European coaches and consultants reclaim 5-15 hours weekly and add 5k Euros monthly recurring revenue through backend automation.\n\nBRAND POSITIONING:\n- We're the \"anti-hype\" automation agency - honest about implementation challenges\n- Focus: Notion + n8n systemization, not \"AI magic\"\n- Target: European coaches/consultants making €3K-€25K monthly\n- Differentiator: We actually implement systems, not just sell courses\n\nCRITICAL RULES:\n1. Write in first person - use \"I\", \"my clients\", \"I've built\"\n2. Lead with real implementation stories, not theory\n3. Call out industry BS (course sellers, overpromising, \"effortless automation\")\n4. Use conversational language - Swiss-based, working with European clients, focusing on clarity, precision and quality\n5. Include specific numbers: hours saved, systems built, time to implementation\n6. End with either a question or a soft CTA, never pushy sales\n\nVOICE CHARACTERISTICS:\n- Honest about reality: \"This took 3 weeks, not 3 days\" vs \"Set it up in minutes\"\n- Implementation-focused: Show actual workflows, not just promises\n- Systems over hype: \"Centralized Notion OS\" vs \"AI agents that do everything\"\n- Relationship-driven: Building trust over aggressive outreach\n- European perspective: Basel-based, working across EU timezones\n\nEach post must score 8+ on authenticity (0-10 scale)."
+            },
+            {
+              "content": "=Generate 5 LinkedIn posts based on this client project insight:\n\nUSE BRIEF INSTRUCTIONS: \n{{ $('Notion Trigger').item.json['Input/Brief'] }}\n\nCLIENT PROJECT INSIGHTS:\n{{ $('Fathom Call Ideas').item.json.contentAngles }}\n\nPain Points: {{ $('Fathom Call Ideas').item.json.painPoints }}\nClient Language: {{ $('Fathom Call Ideas').item.json.clientLanguage }}\nBreakthrough: {{ $('Fathom Call Ideas').item.json.ahaMoment }}\n\nCURRENT TRENDS/RESEARCH:\n{{ $('HTTP Request - Perplexity Research').item.json.choices[0].message.content }}\n\nBRAND GUIDELINES:\n{{ $('Branding Guidelines').item.json.body }}\n\nVOICE EXAMPLES (High Performers):\n{{ $('High Performers Search').all().map(post => post.json.name).join('\\n\\n---\\n\\n') }}\n\n---\n\nCreate 5 unique posts exploring different angles:\n1. Client transformation story (hours saved, systems built)\n2. Industry reality check (calling out automation BS)\n3. Behind-the-scenes implementation (what actually worked)\n4. System breakdown (Notion + Make.com workflow)\n5. Question or contrarian take on automation\n\nFor each post:\n- 150-250 words\n- Hook in first sentence (scroll-stopping)\n- Use Timon's authentic voice (honest, systems-focused, anti-hype)\n- Include 1-2 line breaks for readability\n- End with question or soft CTA\n- Score voice authenticity (0-10)\n\nFormat as JSON:\n{\n  \"posts\": [\n    {\n      \"angle\": \"client transformation\",\n      \"content\": \"Full post text here...\",\n      \"voiceScore\": 8,\n      \"hook\": \"First sentence\",\n      \"cta\": \"Final sentence\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "f807ec78-6d18-4e52-bd7a-6ef1338e3e76",
+      "name": "Generate Posts",
+      "credentials": {
+        "openAiApi": {
+          "id": "c2EeK7zA6tTcc9An",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "e2234a9e-f84d-49d9-abed-e5272b751340",
+          "mode": "list",
+          "cachedResultName": "Content Automation Database",
+          "cachedResultUrl": "https://www.notion.so/e2234a9ef84d49d9abede5272b751340"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Title|title",
+              "title": "={{ $json.angle }}"
+            },
+            {
+              "key": "Content|rich_text",
+              "textContent": "={{ $json.content }}"
+            },
+            {
+              "key": "Status|status"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        0
+      ],
+      "id": "a746f19f-1a89-423b-a9c4-f2eb4c9b6144",
+      "name": "Put Content Pieces in Database",
+      "credentials": {
+        "notionApi": {
+          "id": "hwThTogBKs7GTWly",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the OpenAI response\nconst openaiResponse = $input.first().json;\n\n// Parse the JSON string if needed\nlet posts;\nif (typeof openaiResponse.choices[0].message.content === 'string') {\n  const content = openaiResponse.choices[0].message.content;\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  posts = jsonMatch ? JSON.parse(jsonMatch[0]).posts : [];\n} else {\n  posts = openaiResponse.choices[0].message.content.posts || [];\n}\n\n// Combine all 5 posts into one formatted string\nconst combinedContent = posts.map((post, index) => {\n  return `📌 POST ${index + 1}: ${post.angle}\\n\\n${post.content}\\n\\n---\\n`;\n}).join('\\n\\n');\n\n// Return single item with combined content\nreturn [{\n  json: {\n    combinedPosts: combinedContent,\n    postCount: posts.length,\n    averageVoiceScore: (posts.reduce((sum, p) => sum + (p.voiceScore || 0), 0) / posts.length).toFixed(1)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "d04d3653-147f-4ce7-b074-df8110e11cba",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "82d51985-3b16-429b-8059-b0847013ef74",
+          "mode": "list",
+          "cachedResultName": "Content Projects",
+          "cachedResultUrl": "https://www.notion.so/82d519853b16429b8059b0847013ef74"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Performance|select",
+              "condition": "equals",
+              "selectValue": "High Performer"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "b5d632ce-7b2e-47da-99ca-e3c239352cc7",
+      "name": "High Performers Search",
+      "credentials": {
+        "notionApi": {
+          "id": "hwThTogBKs7GTWly",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "fe1ec1a3-d0f8-46cf-88cc-2080a3ab31e5",
+          "mode": "list",
+          "cachedResultName": "Call Insights & Ideas",
+          "cachedResultUrl": "https://www.notion.so/fe1ec1a3d0f846cf88cc2080a3ab31e5"
+        },
+        "limit": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "720e5e4d-cce9-44e9-b9e1-3ec53e356e97",
+      "name": "Fathom Call Ideas",
+      "credentials": {
+        "notionApi": {
+          "id": "hwThTogBKs7GTWly",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "get",
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/Branding-Guidelines-2bf698c25ecb80aea2f1e066181047e5?source=copy_link",
+          "mode": "url"
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        0
+      ],
+      "id": "249bdad9-6027-4da0-a114-86095ad604f4",
+      "name": "Branding Guidelines",
+      "credentials": {
+        "notionApi": {
+          "id": "hwThTogBKs7GTWly",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Notion Trigger": [
+      {
+        "json": {
+          "id": "2c4698c2-5ecb-8042-88ee-f4172576deae",
+          "Status": "Processing",
+          "FIRE AUTOMATION": false,
+          "Content": "blablablab",
+          "Related Content Project": [],
+          "Link": "linkedin.com",
+          "Input/Brief": "I would like to have a post about how systems are really crucial to implement before you automate anything",
+          "Title": "Systems are important"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Notion Trigger": {
+      "main": [
+        [
+          {
+            "node": "High Performers Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Perplexity Research": {
+      "main": [
+        [
+          {
+            "node": "Generate Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Posts": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Put Content Pieces in Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Put Content Pieces in Database": {
+      "main": [
+        []
+      ]
+    },
+    "High Performers Search": {
+      "main": [
+        [
+          {
+            "node": "Fathom Call Ideas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fathom Call Ideas": {
+      "main": [
+        [
+          {
+            "node": "Branding Guidelines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Branding Guidelines": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Perplexity Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "75fb6498-1f7c-4918-814d-d505a8b94f39",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a86bb16905ba5e133b015649e8dfc31d9506e4fd35b0a5dbda587f5d4b97fd4"
+  },
+  "id": "wm5xAR5OBUBY4dgu",
+  "tags": [
+    {
+      "updatedAt": "2025-12-04T18:17:19.407Z",
+      "createdAt": "2025-12-04T18:17:19.407Z",
+      "id": "9C1WT6cwF6u7Jg2C",
+      "name": "Andreas Dubinyi"
+    }
+  ]
+}
