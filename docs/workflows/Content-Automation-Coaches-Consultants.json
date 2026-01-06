@@ -60,7 +60,7 @@
         "simplify": true
       },
       "type": "n8n-nodes-base.notion",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         -280,
         240
@@ -79,25 +79,18 @@
           "mode": "id"
         },
         "limit": 3,
-        "options": {
-          "sort": {
-            "sortValue": {
-              "key": "Created time",
-              "direction": "descending"
-            }
-          }
-        },
+        "options": {},
         "simplify": true
       },
       "type": "n8n-nodes-base.notion",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         -80,
         240
       ],
       "id": "fathom-ideas-001",
       "name": "Fathom Call Ideas",
-      "notes": "Replace YOUR_CALL_INSIGHTS_DATABASE_ID_HERE. Optional - leave empty if not using Fathom"
+      "notes": "Replace YOUR_CALL_INSIGHTS_DATABASE_ID_HERE. Optional - can leave empty if not using Fathom"
     },
     {
       "parameters": {
@@ -112,7 +105,7 @@
         "simplify": true
       },
       "type": "n8n-nodes-base.notion",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         120,
         240
@@ -134,7 +127,7 @@
         "simplify": true
       },
       "type": "n8n-nodes-base.notion",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         320,
         240
@@ -197,7 +190,7 @@
         }
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "typeVersion": 1,
+      "typeVersion": 1.1,
       "position": [
         920,
         240
@@ -263,29 +256,17 @@
           "value": "={{ $('Notion Trigger').item.json.id }}",
           "mode": "id"
         },
-        "propertiesUi": {
-          "propertyValues": [
-            {
-              "key": "FIRE AUTOMATION",
-              "checkboxValue": false
-            },
-            {
-              "key": "Status",
-              "type": "status",
-              "statusValue": "Complete"
-            }
-          ]
-        }
+        "options": {}
       },
       "type": "n8n-nodes-base.notion",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         1520,
         240
       ],
       "id": "update-status-001",
       "name": "Update a database page",
-      "notes": "Unchecks FIRE AUTOMATION and sets Status to Complete"
+      "notes": "Unchecks FIRE AUTOMATION and sets Status to Complete. CONFIGURE MANUALLY after import."
     }
   ],
   "connections": {
@@ -420,7 +401,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "coach-consultant-v1",
+  "versionId": "coach-consultant-v1-fixed",
   "meta": {
     "templateCredsSetupCompleted": false
   },
